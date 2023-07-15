@@ -9,34 +9,40 @@ const {
 } = require('../utils/errors');
 
 function getUsers(req, res) {
-  return User.find({})
+  User.find({})
     .then((users) => res.status(OK).send(users))
-    .catch(() => res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла внутренняя ошибка' }));
+    .catch(() => res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' }));
 }
 
 function getUser(req, res) {
-  return User.findById(req.params.userId)
+  User.findById(req.params.userId)
     .then((user) => {
       if (!user) {
-        res.status(NOT_FOUND).send({ message: 'Пользователь не найден' });
-      } else {
-        res.status(OK).send(user);
+        return res.status(NOT_FOUND).send({ message: 'Пользователь не найден' });
       }
+      return res.status(OK).send(user);
     })
-    .catch(() => res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла внутренняя ошибка' }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        return res.status(BAD_REQUEST).send({
+          message: 'Ошибка в ведённых данных',
+        });
+      }
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
+    });
 }
 
 function createUser(req, res) {
-  return User.create({ ...req.body })
+  const { name, about, avatar } = req.body;
+  return User.create({ name, about, avatar })
     .then((user) => {
-      res.status(CREATED).send(user);
+      res.status(CREATED).send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(BAD_REQUEST).send({ message: 'Ошибка в ведённых данных' });
-      } else {
-        res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла внутренняя ошибка' });
       }
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
     });
 }
 
@@ -48,7 +54,7 @@ function updateUser(req, res) {
       if (err.name === 'ValidationError') {
         res.status(BAD_REQUEST).send({ message: 'Ошибка в ведённых данных' });
       } else {
-        res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла внутренняя ошибка' });
+        res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
       }
     });
 }
@@ -61,7 +67,7 @@ function updateAvatar(req, res) {
       if (err.name === 'ValidationError') {
         res.status(BAD_REQUEST).send({ message: 'Ошибка в ведённых данных' });
       } else {
-        res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла внутренняя ошибка' });
+        res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
       }
     });
 }
