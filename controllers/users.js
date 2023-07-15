@@ -34,9 +34,9 @@ function getUser(req, res) {
 
 function createUser(req, res) {
   const { name, about, avatar } = req.body;
-  return User.create({ name, about, avatar })
+  User.create({ name, about, avatar })
     .then((user) => {
-      res.status(CREATED).send({ data: user });
+      res.status(CREATED).send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -48,27 +48,35 @@ function createUser(req, res) {
 
 function updateUser(req, res) {
   const { name, about } = req.body;
-  return User.findByIdAndUpdate(req.user._id, { name, about })
+  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .then((user) => res.status(OK).send(user))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(BAD_REQUEST).send({ message: 'Ошибка в ведённых данных' });
-      } else {
-        res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
+      if (err.name === 'CastError' || err.name === 'ValidationError') {
+        return res.status(BAD_REQUEST).send({
+          message: 'Ошибка в ведённых данных',
+        });
       }
+      if (err.name === 'DocumentNotFoundError') {
+        return res.status(NOT_FOUND).send({ message: 'Пользователь не найден' });
+      }
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
     });
 }
 
 function updateAvatar(req, res) {
   const { avatar } = req.body;
-  return User.findByIdAndUpdate(req.user._id, { avatar })
-    .then((users) => res.status(OK).send(users))
+  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true })
+    .then((user) => res.status(OK).send(user))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(BAD_REQUEST).send({ message: 'Ошибка в ведённых данных' });
-      } else {
-        res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
+      if (err.name === 'CastError' || err.name === 'ValidationError') {
+        return res.status(BAD_REQUEST).send({
+          message: 'Ошибка в ведённых данных',
+        });
       }
+      if (err.name === 'DocumentNotFoundError') {
+        return res.status(NOT_FOUND).send({ message: 'Пользователь не найден' });
+      }
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
     });
 }
 
