@@ -26,7 +26,7 @@ app.use(userRouter);
 app.use(cardRouter);
 
 app.use('*', (req, res) => {
-  res.status(NOT_FOUND).json({ massage: 'Страница не найдена' });
+  res.status(NOT_FOUND).json({ message: 'Страница не найдена' });
 });
 
 app.listen(PORT, () => {
