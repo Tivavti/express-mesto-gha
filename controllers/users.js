@@ -40,7 +40,7 @@ function createUser(req, res) {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(BAD_REQUEST).send({ message: 'Ошибка в ведённых данных' });
+        return res.status(BAD_REQUEST).send({ message: 'Ошибка в ведённых данных' });
       }
       return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
     });
