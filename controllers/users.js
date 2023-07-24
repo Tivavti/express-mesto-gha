@@ -16,8 +16,8 @@ function login(req, res) {
     .then((currentUser) => {
       const token = jwt.sign({ _id: currentUser._id }, 'itsy-bitsy-teeny-weeny-secret', { expiresIn: '7d' });
       res.cookie('jwt', token, { httpOnly: true });
-    });
-    .catch (() => res.status(401).send({ message: 'Произошла ошибка' }));
+    })
+    .catch(() => res.status(401).send({ message: 'Произошла ошибка' }));
 }
 
 function getUsers(req, res) {
