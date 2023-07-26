@@ -20,7 +20,7 @@ const auth = (req, _res, next) => {
   next();
 };
 
-module.exports = { auth };
+module.exports = auth;
 
 /* const jwt = require('jsonwebtoken');
 const { UNAUTHORIZED } = require('../utils/errors');

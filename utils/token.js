@@ -18,13 +18,4 @@ function checkToken(token) {
   }
 }
 
-function getIdFromToken(token) {
-  if (!token) {
-    return false;
-  }
-
-  const decode = jwt.verify(token, SUPER_SECRET_KEY)._id;
-  return decode;
-}
-
-module.exports = { generateToken, checkToken, getIdFromToken };
+module.exports = { generateToken, checkToken };

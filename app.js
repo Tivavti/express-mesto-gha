@@ -4,12 +4,12 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const helmet = require('helmet');
 
+const auth = require('./middlewares/auth');
 const userRouter = require('./routes/users');
 const cardRouter = require('./routes/cards');
 const { NOT_FOUND } = require('./utils/errors');
 
 const { login, createUser } = require('./controllers/users');
-const auth = require('./middlewares/auth');
 
 const { PORT = 3000, DB_URL = 'mongodb://127.0.0.1:27017/mestodb' } = process.env;
 const app = express();
@@ -23,7 +23,7 @@ app.disable('x-powered-by');
 app.post('/signin', login);
 app.post('/signup', createUser);
 
-//app.use('/', auth);
+app.use(auth);
 app.use(userRouter);
 app.use(cardRouter);
 
