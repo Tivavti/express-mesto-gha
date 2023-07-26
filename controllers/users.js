@@ -17,7 +17,7 @@ const login = async (req, res, next) => {
 
   try {
     const user = await User.findUserByCredentials(email, password);
-    const payload = { _id: user._id };
+    const payload = { _id: user._id, email: user.email };
     const token = generateToken(payload);
     res.cookie('jwt', token);
     return res.status(OK).send(payload);
