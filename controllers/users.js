@@ -1,24 +1,30 @@
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
 const {
   OK,
   CREATED,
   BAD_REQUEST,
+  UNAUTHORIZED,
   NOT_FOUND,
   INTERNAL_SERVER_ERROR,
 } = require('../utils/errors');
 
-function login(req, res) {
+const { generateToken } = require('../utils/token');
+
+const login = async (req, res, next) => {
   const { email, password } = req.body;
-  User.findUserByCredentials(email, password)
-    .then((currentUser) => {
-      const token = jwt.sign({ _id: currentUser._id }, 'itsy-bitsy-teeny-weeny-secret', { expiresIn: '7d' });
-      res.cookie('jwt', token, { httpOnly: true });
-    })
-    .catch(() => res.status(401).send({ message: 'Произошла ошибка' }));
-}
+
+  try {
+    const user = await User.findUserByCredentials(email, password);
+    const payload = { _id: user._id };
+    const token = generateToken(payload);
+    res.cookie('jwt', token);
+    return res.status(OK).send(payload);
+  } catch (error) {
+    return next(new UNAUTHORIZED('Необходима авторизация'));
+  }
+};
 
 function getUsers(req, res) {
   User.find({})
@@ -61,7 +67,10 @@ function createUser(req, res) {
       password: hash,
     }))
     .then((user) => {
-      res.status(CREATED).send(user);
+      res.status(CREATED).send({
+        email: user.email,
+        _id: user._id,
+      });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -72,7 +81,7 @@ function createUser(req, res) {
 }
 
 function getCurrentUser(req, res) {
-  User.findById(req.user._id)
+  User.findById(req.params.userId)
     .then((user) => {
       if (!user) {
         return res.status(NOT_FOUND).send({ message: 'Пользователь не найден' });

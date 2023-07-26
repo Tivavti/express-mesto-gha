@@ -23,7 +23,7 @@ app.disable('x-powered-by');
 app.post('/signin', login);
 app.post('/signup', createUser);
 
-app.use(auth);
+//app.use('/', auth);
 app.use(userRouter);
 app.use(cardRouter);
 
