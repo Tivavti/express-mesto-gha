@@ -13,7 +13,7 @@ function checkToken(token) {
 
   try {
     return jwt.verify(token, SUPER_SECRET_KEY);
-  } catch (error) {
+  } catch (err) {
     return false;
   }
 }

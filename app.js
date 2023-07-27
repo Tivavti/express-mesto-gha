@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const helmet = require('helmet');
 const cookies = require('cookie-parser');
 const { celebrate, Joi } = require('celebrate');
+const { errors } = require('celebrate');
 
 const { auth } = require('./middlewares/auth');
 const userRouter = require('./routes/users');
@@ -32,11 +33,11 @@ app.post('/signin', celebrate({
 }), login);
 app.post('/signup', celebrate({
   body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required(),
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
     avatar: Joi.string().pattern(RegexUrl),
-    email: Joi.string().required().email(),
-    password: Joi.string().required(),
   }),
 }), createUser);
 
@@ -44,7 +45,9 @@ app.use(auth);
 app.use(userRouter);
 app.use(cardRouter);
 
-app.use('*', (req, res, next) => next(new NotFoundError('Страница не найдена')));
+app.use('*', (_req, _res, next) => next(new NotFoundError('Страница не найдена')));
+
+app.use(errors());
 
 app.listen(PORT, () => {
   console.log(`Application is running on ${PORT}`);

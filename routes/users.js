@@ -5,9 +5,9 @@ const { RegexUrl } = require('../utils/regex');
 
 const {
   getUsers,
-  getUser,
   getCurrentUser,
   updateUser,
+  getUser,
   updateAvatar,
 } = require('../controllers/users');
 

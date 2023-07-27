@@ -66,7 +66,13 @@ function createUser(req, res, next) {
       password: hash,
     }))
     .then((user) => {
-      res.status(CREATED).send(user);
+      res.status(CREATED).send({
+        _id: user._id,
+        name: user.name,
+        about: user.about,
+        avatar: user.avatar,
+        email: user.email,
+      });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -77,7 +83,8 @@ function createUser(req, res, next) {
 }
 
 function getCurrentUser(req, res, next) {
-  User.findById(req.params.userId)
+  const { _id } = req.user;
+  User.findById(_id)
     .then((user) => {
       if (!user) {
         return next(new NotFoundError('Пользователь не найден'));
