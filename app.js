@@ -10,7 +10,7 @@ const { auth } = require('./middlewares/auth');
 const userRouter = require('./routes/users');
 const cardRouter = require('./routes/cards');
 const NotFoundError = require('./utils/errors/notFoundError');
-const RegexUrl = require('./utils/regex');
+const { RegexUrl } = require('./utils/regex');
 
 const { login, createUser } = require('./controllers/users');
 
