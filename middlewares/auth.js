@@ -1,15 +1,15 @@
 const { checkToken } = require('../utils/token');
-const { UNAUTHORIZED } = require('../utils/status');
+const UnauthorizedError = require('../utils/errors/unauthorizedError');
 
 const auth = (req, _res, next) => {
   if (!req.cookies) {
-    return next(new UNAUTHORIZED('Необходима авторизация'));
+    return next(new UnauthorizedError('Необходима авторизация'));
   }
   const token = req.cookies.jwt;
   const result = checkToken(token);
 
   if (!result) {
-    return next(new UNAUTHORIZED('Необходима авторизация'));
+    return next(new UnauthorizedError('Необходима авторизация'));
   }
 
   return next();
