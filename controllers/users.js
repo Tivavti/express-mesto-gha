@@ -10,6 +10,7 @@ const UnauthorizedError = require('../utils/errors/unauthorizedError');
 const InternalServerError = require('../utils/errors/internalServerError');
 const NotFoundError = require('../utils/errors/notFoundError');
 const BadRequestError = require('../utils/errors/badRequestError');
+const ConflictError = require('../utils/errors/conflictError');
 
 const { generateToken } = require('../utils/token');
 
@@ -45,7 +46,7 @@ function getUser(req, res, next) {
       if (err.name === 'CastError') {
         return next(new BadRequestError('Ошибка в ведённых данных'));
       }
-      return next(new UnauthorizedError('Необходима авторизация'));
+      return next(new InternalServerError('Произошла ошибка'));
     });
 }
 
@@ -78,7 +79,10 @@ function createUser(req, res, next) {
       if (err.name === 'ValidationError') {
         return next(new BadRequestError('Ошибка в ведённых данных'));
       }
-      return next(new UnauthorizedError('Необходима авторизация'));
+      if (err.code === 11000) {
+        return next(new ConflictError('Такой пользователь уже существует'));
+      }
+      return next(new InternalServerError('Произошла ошибка'));
     });
 }
 
@@ -95,7 +99,7 @@ function getCurrentUser(req, res, next) {
       if (err.name === 'CastError') {
         return next(new BadRequestError('Ошибка в ведённых данных'));
       }
-      return next(new UnauthorizedError('Необходима авторизация'));
+      return next(new InternalServerError('Произошла ошибка'));
     });
 }
 
@@ -110,7 +114,7 @@ function updateUser(req, res, next) {
       if (err.name === 'DocumentNotFoundError') {
         return next(new NotFoundError('Пользователь не найден'));
       }
-      return next(new UnauthorizedError('Необходима авторизация'));
+      return next(new InternalServerError('Произошла ошибка'));
     });
 }
 
@@ -125,7 +129,7 @@ function updateAvatar(req, res, next) {
       if (err.name === 'DocumentNotFoundError') {
         return next(new NotFoundError('Пользователь не найден'));
       }
-      return next(new UnauthorizedError('Необходима авторизация'));
+      return next(new InternalServerError('Произошла ошибка'));
     });
 }
 
