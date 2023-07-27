@@ -4,11 +4,12 @@ const User = require('../models/user');
 const {
   OK,
   CREATED,
-  BAD_REQUEST,
-  UNAUTHORIZED,
-  NOT_FOUND,
-  INTERNAL_SERVER_ERROR,
-} = require('../utils/errors');
+} = require('../utils/status');
+
+const UnauthorizedError = require('../utils/errors/unauthorizedError');
+const InternalServerError = require('../utils/errors/internalServerError');
+const NotFoundError = require('../utils/errors/notFoundError');
+const BadRequestError = require('../utils/errors/badRequestError');
 
 const { generateToken } = require('../utils/token');
 
@@ -21,36 +22,34 @@ const login = async (req, res, next) => {
     const token = generateToken(payload);
     res.cookie('jwt', token);
     return res.status(OK).send(payload);
-  } catch (error) {
-    return next(new UNAUTHORIZED('Необходима авторизация'));
+  } catch (err) {
+    return next(new UnauthorizedError('Необходима авторизация'));
   }
 };
 
-function getUsers(req, res) {
+function getUsers(_req, res, next) {
   User.find({})
     .then((users) => res.status(OK).send(users))
-    .catch(() => res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' }));
+    .catch(() => next(new InternalServerError('Произошла ошибка')));
 }
 
-function getUser(req, res) {
+function getUser(req, res, next) {
   User.findById(req.params.userId)
     .then((user) => {
       if (!user) {
-        return res.status(NOT_FOUND).send({ message: 'Пользователь не найден' });
+        return next(new NotFoundError('Пользователь не найден'));
       }
       return res.status(OK).send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(BAD_REQUEST).send({
-          message: 'Ошибка в ведённых данных',
-        });
+        return next(new BadRequestError('Ошибка в ведённых данных'));
       }
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
+      return next(new UnauthorizedError('Необходима авторизация'));
     });
 }
 
-function createUser(req, res) {
+function createUser(req, res, next) {
   const {
     name,
     about,
@@ -71,61 +70,55 @@ function createUser(req, res) {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(BAD_REQUEST).send({ message: 'Ошибка в ведённых данных' });
+        return next(new BadRequestError('Ошибка в ведённых данных'));
       }
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
+      return next(new UnauthorizedError('Необходима авторизация'));
     });
 }
 
-function getCurrentUser(req, res) {
+function getCurrentUser(req, res, next) {
   User.findById(req.params.userId)
     .then((user) => {
       if (!user) {
-        return res.status(NOT_FOUND).send({ message: 'Пользователь не найден' });
+        return next(new NotFoundError('Пользователь не найден'));
       }
       return res.status(OK).send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(BAD_REQUEST).send({
-          message: 'Ошибка в ведённых данных',
-        });
+        return next(new BadRequestError('Ошибка в ведённых данных'));
       }
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
+      return next(new UnauthorizedError('Необходима авторизация'));
     });
 }
 
-function updateUser(req, res) {
+function updateUser(req, res, next) {
   const { name, about } = req.body;
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .then((user) => res.status(OK).send(user))
     .catch((err) => {
       if (err.name === 'CastError' || err.name === 'ValidationError') {
-        return res.status(BAD_REQUEST).send({
-          message: 'Ошибка в ведённых данных',
-        });
+        return next(new BadRequestError('Ошибка в ведённых данных'));
       }
       if (err.name === 'DocumentNotFoundError') {
-        return res.status(NOT_FOUND).send({ message: 'Пользователь не найден' });
+        return next(new NotFoundError('Пользователь не найден'));
       }
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
+      return next(new UnauthorizedError('Необходима авторизация'));
     });
 }
 
-function updateAvatar(req, res) {
+function updateAvatar(req, res, next) {
   const { avatar } = req.body;
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true })
     .then((user) => res.status(OK).send(user))
     .catch((err) => {
       if (err.name === 'CastError' || err.name === 'ValidationError') {
-        return res.status(BAD_REQUEST).send({
-          message: 'Ошибка в ведённых данных',
-        });
+        return next(new BadRequestError('Ошибка в ведённых данных'));
       }
       if (err.name === 'DocumentNotFoundError') {
-        return res.status(NOT_FOUND).send({ message: 'Пользователь не найден' });
+        return next(new NotFoundError('Пользователь не найден'));
       }
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
+      return next(new UnauthorizedError('Необходима авторизация'));
     });
 }
 
