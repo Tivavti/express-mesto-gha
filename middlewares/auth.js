@@ -11,7 +11,7 @@ const auth = (req, _res, next) => {
   if (!result) {
     return next(new UnauthorizedError('Необходима авторизация'));
   }
-  req.user = result;
+
   return next();
 };
 

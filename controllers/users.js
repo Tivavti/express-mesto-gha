@@ -76,11 +76,11 @@ function createUser(req, res, next) {
       });
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return next(new BadRequestError('Ошибка в ведённых данных'));
-      }
       if (err.code === 11000) {
         return next(new ConflictError('Такой пользователь уже существует'));
+      }
+      if (err.name === 'ValidationError') {
+        return next(new BadRequestError('Ошибка в ведённых данных'));
       }
       return next(new InternalServerError('Произошла ошибка'));
     });
