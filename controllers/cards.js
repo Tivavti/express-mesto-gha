@@ -28,20 +28,22 @@ function createCard(req, res, next) {
 }
 
 function deleteCard(req, res, next) {
-  return Card.findByIdAndRemove(req.params.cardId)
-    .orFail(new NotFoundError('Карточка не найдена'))
+  return Card.findById(req.params.cardId)
     .then((card) => {
+      if (!card) {
+        throw next(new NotFoundError('Карточка не найдена'));
+      }
       if (card.owner._id.toString() !== req.user._id) {
         throw (new ForbiddenError('Доступ запрещён'));
-      } else {
-        res.status(OK).send(card);
       }
+      return Card.deleteOne(card);
     })
+    .then((card) => res.status(OK).send(card))
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new BadRequestError('Ошибка в ведённых данных'));
+        return next(new BadRequestError('Ошибка в ведённых данных'));
       }
-      next(err);
+      return next(err);
     });
 }
 
