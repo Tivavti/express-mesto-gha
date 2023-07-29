@@ -5,14 +5,14 @@ const {
   CREATED,
 } = require('../utils/status');
 
-const InternalServerError = require('../utils/errors/internalServerError');
 const NotFoundError = require('../utils/errors/notFoundError');
 const BadRequestError = require('../utils/errors/badRequestError');
+const ForbiddenError = require('../utils/errors/forbiddenError');
 
 function getCards(_req, res, next) {
   return Card.find({})
     .then((cards) => res.status(OK).send(cards))
-    .catch(() => next(new InternalServerError('Произошла ошибка')));
+    .catch(next);
 }
 
 function createCard(req, res, next) {
@@ -23,23 +23,25 @@ function createCard(req, res, next) {
       if (err.name === 'ValidationError') {
         return next(new BadRequestError('Ошибка в ведённых данных'));
       }
-      return next(new InternalServerError('Произошла ошибка'));
+      return next(err);
     });
 }
 
 function deleteCard(req, res, next) {
   return Card.findByIdAndRemove(req.params.cardId)
+    .orFail(new NotFoundError('Карточка не найдена'))
     .then((card) => {
-      if (!card) {
-        return next(new NotFoundError('Карточка не найдена'));
+      if (card.owner._id.toString() !== req.user._id) {
+        throw (new ForbiddenError('Доступ запрещён'));
+      } else {
+        res.status(OK).send(card);
       }
-      return res.status(OK).send(card);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return next(new BadRequestError('Ошибка в ведённых данных'));
+        next(new BadRequestError('Ошибка в ведённых данных'));
       }
-      return next(new InternalServerError('Произошла ошибка'));
+      next(err);
     });
 }
 
@@ -49,17 +51,13 @@ function likeCard(req, res, next) {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => {
-      if (!card) {
-        return next(new NotFoundError('Карточка не найдена'));
-      }
-      return res.status(OK).send(card);
-    })
+    .orFail(new NotFoundError('Карточка не найдена'))
+    .then((card) => res.status(OK).send(card))
     .catch((err) => {
       if (err.name === 'CastError') {
         return next(new BadRequestError('Ошибка в ведённых данных'));
       }
-      return next(new InternalServerError('Произошла ошибка'));
+      return next(err);
     });
 }
 
@@ -69,17 +67,13 @@ function dislikeCard(req, res, next) {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => {
-      if (!card) {
-        return next(new NotFoundError('Карточка не найдена'));
-      }
-      return res.status(OK).send(card);
-    })
+    .orFail(new NotFoundError('Карточка не найдена'))
+    .then((card) => res.status(OK).send(card))
     .catch((err) => {
       if (err.name === 'CastError') {
         return next(new BadRequestError('Ошибка в ведённых данных'));
       }
-      return next(new InternalServerError('Произошла ошибка'));
+      return next(err);
     });
 }
 

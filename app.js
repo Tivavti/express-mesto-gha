@@ -11,6 +11,7 @@ const { auth } = require('./middlewares/auth');
 const userRouter = require('./routes/users');
 const cardRouter = require('./routes/cards');
 const NotFoundError = require('./utils/errors/notFoundError');
+const error = require('./middlewares/err');
 const { RegexUrl } = require('./utils/regex');
 
 const { login, createUser } = require('./controllers/users');
@@ -45,9 +46,10 @@ app.use(auth);
 app.use(userRouter);
 app.use(cardRouter);
 
-app.use('*', (_req, _res, next) => next(new NotFoundError('Страница не найдена')));
+app.use('/*', (_req, _res, next) => next(new NotFoundError('Страница не найдена')));
 
 app.use(errors());
+app.use(error);
 
 app.listen(PORT, () => {
   console.log(`Application is running on ${PORT}`);

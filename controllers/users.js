@@ -7,7 +7,6 @@ const {
 } = require('../utils/status');
 
 const UnauthorizedError = require('../utils/errors/unauthorizedError');
-const InternalServerError = require('../utils/errors/internalServerError');
 const NotFoundError = require('../utils/errors/notFoundError');
 const BadRequestError = require('../utils/errors/badRequestError');
 const ConflictError = require('../utils/errors/conflictError');
@@ -31,23 +30,14 @@ const login = async (req, res, next) => {
 function getUsers(_req, res, next) {
   User.find({})
     .then((users) => res.status(OK).send(users))
-    .catch(() => next(new InternalServerError('Произошла ошибка')));
+    .catch(next);
 }
 
 function getUser(req, res, next) {
   User.findById(req.params.userId)
-    .then((user) => {
-      if (!user) {
-        return next(new NotFoundError('Пользователь не найден'));
-      }
-      return res.status(OK).send(user);
-    })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        return next(new BadRequestError('Ошибка в ведённых данных'));
-      }
-      return next(new InternalServerError('Произошла ошибка'));
-    });
+    .orFail(() => new NotFoundError('Пользователь не найден'))
+    .then((user) => res.status(OK).send(user))
+    .catch(next);
 }
 
 function createUser(req, res, next) {
@@ -81,7 +71,7 @@ function createUser(req, res, next) {
       } else if (err.code === 11000) {
         next(new ConflictError('Такой пользователь уже существует'));
       } else {
-        next(new InternalServerError('Произошла ошибка'));
+        next(err);
       }
     });
 }
@@ -99,7 +89,7 @@ function getCurrentUser(req, res, next) {
       if (err.name === 'CastError') {
         return next(new BadRequestError('Ошибка в ведённых данных'));
       }
-      return next(new InternalServerError('Произошла ошибка'));
+      return next(err);
     });
 }
 
@@ -114,7 +104,7 @@ function updateUser(req, res, next) {
       if (err.name === 'DocumentNotFoundError') {
         return next(new NotFoundError('Пользователь не найден'));
       }
-      return next(new InternalServerError('Произошла ошибка'));
+      return next(err);
     });
 }
 
@@ -129,7 +119,7 @@ function updateAvatar(req, res, next) {
       if (err.name === 'DocumentNotFoundError') {
         return next(new NotFoundError('Пользователь не найден'));
       }
-      return next(new InternalServerError('Произошла ошибка'));
+      return next(err);
     });
 }
 
